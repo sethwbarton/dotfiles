@@ -1,0 +1,1 @@
+/home/seth/.config/omarchy/current/theme/neovim.lua
