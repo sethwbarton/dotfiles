@@ -70,6 +70,45 @@ install_fonts() {
     esac
 }
 
+# ---------- eza ----------
+
+install_eza() {
+    if command -v eza &>/dev/null; then
+        info "eza already installed."
+        return
+    fi
+
+    info "Installing eza..."
+    case "$OS" in
+        Darwin)
+            brew install eza
+            ;;
+        Linux)
+            if command -v pacman &>/dev/null; then
+                sudo pacman -S --noconfirm eza
+            elif command -v apt-get &>/dev/null; then
+                sudo apt-get install -y eza
+            else
+                warn "Could not detect package manager. Install eza manually: https://github.com/eza-community/eza"
+            fi
+            ;;
+    esac
+}
+
+# ---------- zshrc sourcing ----------
+
+configure_zsh_eza() {
+    local SOURCE_LINE='source ~/.config/zsh/eza.zsh'
+    if ! grep -qF "$SOURCE_LINE" ~/.zshrc 2>/dev/null; then
+        info "Adding eza aliases to ~/.zshrc..."
+        echo "" >> ~/.zshrc
+        echo "# eza aliases (managed by dotfiles)" >> ~/.zshrc
+        echo "$SOURCE_LINE" >> ~/.zshrc
+    else
+        info "eza aliases already sourced in ~/.zshrc."
+    fi
+}
+
 # ---------- stow ----------
 
 link_dotfiles() {
@@ -77,7 +116,7 @@ link_dotfiles() {
 
     cd "$DOTFILES_DIR"
 
-    for package in nvim alacritty; do
+    for package in nvim alacritty eza; do
         if [ -d "$package" ]; then
             info "  Stowing $package..."
             stow --restow "$package"
@@ -92,8 +131,10 @@ info "Setting up dotfiles on $OS..."
 echo ""
 
 install_prerequisites
+install_eza
 install_fonts
 link_dotfiles
+configure_zsh_eza
 
 echo ""
 info "Done! You may need to:"
@@ -106,4 +147,5 @@ case "$OS" in
         echo "  - Restart Alacritty to pick up any config changes"
         ;;
 esac
+echo "  - Restart your shell (or run 'source ~/.zshrc') to pick up eza aliases"
 echo ""
