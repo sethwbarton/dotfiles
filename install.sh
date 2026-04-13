@@ -95,7 +95,43 @@ install_eza() {
     esac
 }
 
+# ---------- starship ----------
+
+install_starship() {
+    if command -v starship &>/dev/null; then
+        info "Starship already installed."
+        return
+    fi
+
+    info "Installing Starship prompt..."
+    case "$OS" in
+        Darwin)
+            brew install starship
+            ;;
+        Linux)
+            if command -v pacman &>/dev/null; then
+                sudo pacman -S --noconfirm starship
+            else
+                info "Installing Starship via official installer..."
+                curl -sS https://starship.rs/install.sh | sh -s -- --yes
+            fi
+            ;;
+    esac
+}
+
 # ---------- zshrc sourcing ----------
+
+configure_zsh_starship() {
+    local SOURCE_LINE='source ~/.config/zsh/starship.zsh'
+    if ! grep -qF "$SOURCE_LINE" ~/.zshrc 2>/dev/null; then
+        info "Adding Starship init to ~/.zshrc..."
+        echo "" >> ~/.zshrc
+        echo "# Starship prompt (managed by dotfiles)" >> ~/.zshrc
+        echo "$SOURCE_LINE" >> ~/.zshrc
+    else
+        info "Starship init already sourced in ~/.zshrc."
+    fi
+}
 
 configure_zsh_eza() {
     local SOURCE_LINE='source ~/.config/zsh/eza.zsh'
@@ -116,7 +152,7 @@ link_dotfiles() {
 
     cd "$DOTFILES_DIR"
 
-    for package in nvim alacritty eza; do
+    for package in nvim alacritty eza starship; do
         if [ -d "$package" ]; then
             info "  Stowing $package..."
             stow --restow "$package"
@@ -132,9 +168,11 @@ echo ""
 
 install_prerequisites
 install_eza
+install_starship
 install_fonts
 link_dotfiles
 configure_zsh_eza
+configure_zsh_starship
 
 echo ""
 info "Done! You may need to:"
@@ -147,5 +185,5 @@ case "$OS" in
         echo "  - Restart Alacritty to pick up any config changes"
         ;;
 esac
-echo "  - Restart your shell (or run 'source ~/.zshrc') to pick up eza aliases"
+echo "  - Restart your shell (or run 'source ~/.zshrc') to activate Starship prompt and eza aliases"
 echo ""

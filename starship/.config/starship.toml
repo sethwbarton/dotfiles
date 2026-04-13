@@ -1,0 +1,10 @@
+# Starship prompt configuration
+# https://starship.rs/config/
+#
+# This file uses the default Starship settings.
+# Customize modules and appearance here as needed.
+
+# Example: set a custom format
+# format = """
+# $directory$git_branch$git_status$character
+# """
